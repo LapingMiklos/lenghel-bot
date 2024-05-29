@@ -4,7 +4,7 @@ use std::time::Duration;
 use serenity::all::{Context, CreateMessage, EventHandler, Ready};
 use serenity::async_trait;
 use serenity::futures::future::join_all;
-use serenity::model::channel::{self, Message};
+use serenity::model::channel::Message;
 use tokio::time;
 
 pub struct Handler;
