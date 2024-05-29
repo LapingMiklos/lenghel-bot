@@ -1,23 +1,10 @@
+pub mod bot;
+
 use std::env;
 
+use bot::handler::Handler;
 use dotenv::dotenv;
-use serenity::all::Ready;
-use serenity::async_trait;
-use serenity::model::channel::Message;
 use serenity::prelude::*;
-
-struct Handler;
-
-#[async_trait]
-impl EventHandler for Handler {
-    async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "/lenghel" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Salut! Lenghel aicia").await {
-                println!("Error sending message: {why:?}");
-            }
-        }
-    }
-}
 
 #[tokio::main]
 async fn main() {
@@ -29,7 +16,7 @@ async fn main() {
         | GatewayIntents::MESSAGE_CONTENT;
 
     let mut client = Client::builder(&token, intents)
-        .event_handler(Handler)
+        .event_handler(Handler::new())
         .await
         .expect("Err creating client");
 
