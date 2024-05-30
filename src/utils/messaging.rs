@@ -1,10 +1,10 @@
 use serenity::all::CreateMessage;
 
-use crate::model::video::Video;
+use crate::model::{channel::YoutubeChannel, video::Video};
 
-pub fn create_video_message(video: &Video) -> CreateMessage {
+pub fn create_video_message(video: &Video, channel: &YoutubeChannel) -> CreateMessage {
     CreateMessage::new().content(format!(
-        "Salut lenghel aicia! Am postat un nou clip: https://www.youtube.com/watch?v={}",
-        video.id.video_id
+        "Salut {} aicia! Am postat un nou clip: https://www.youtube.com/watch?v={}",
+        channel.name, video.id.video_id
     ))
 }

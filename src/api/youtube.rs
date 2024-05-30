@@ -17,7 +17,7 @@ impl YoutubeChannelApi {
         }
     }
 
-    pub async fn get_last_video(&self) -> Result<Option<Video>, Error> {
+    pub async fn get_recent_video(&self) -> Result<Option<Video>, Error> {
         #[derive(Deserialize, Debug)]
         struct ApiResponse {
             items: Vec<Video>,
@@ -30,7 +30,7 @@ impl YoutubeChannelApi {
 
         let res: ApiResponse = reqwest::get(&url).await?.json().await?;
 
-        Ok(res.items.into_iter().next())
+        Ok(res.items.into_iter().next().filter(|v| v.is_recent()))
     }
 }
 
