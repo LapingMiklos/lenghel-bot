@@ -29,7 +29,7 @@ impl EventHandler for Handler {
         let ctx_clone = ctx.clone();
 
         tokio::spawn(async move {
-            let mut interval = time::interval(Duration::from_secs(10));
+            let mut interval = time::interval(Duration::from_secs(1000));
 
             loop {
                 interval.tick().await;
