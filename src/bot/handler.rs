@@ -1,17 +1,21 @@
 use std::time::Duration;
 
-use serenity::all::{Context, CreateMessage, EventHandler, Ready};
+use serenity::all::{Context, EventHandler, Ready};
 use serenity::async_trait;
 use serenity::model::channel::Message;
 use tokio::time;
 
-use crate::utils::discord_utils::broadcast_message;
+use crate::model::channel::YoutubeChannel;
+use crate::utils::discord::broadcast_message;
+use crate::utils::messaging::create_video_message;
 
-pub struct Handler;
+pub struct Handler {
+    channels: Vec<YoutubeChannel>,
+}
 
 impl Handler {
-    pub fn new() -> Handler {
-        Handler
+    pub fn new(channels: Vec<YoutubeChannel>) -> Handler {
+        Handler { channels }
     }
 }
 
@@ -27,18 +31,23 @@ impl EventHandler for Handler {
 
     async fn ready(&self, ctx: Context, _ready: Ready) {
         let ctx_clone = ctx.clone();
+        let channels = self.channels.clone();
 
         tokio::spawn(async move {
-            let mut interval = time::interval(Duration::from_secs(10));
+            let mut request_interval = time::interval(Duration::from_secs(10));
 
             loop {
-                interval.tick().await;
+                request_interval.tick().await;
 
-                if let Err(err) =
-                    broadcast_message(&ctx_clone, CreateMessage::new().content("Salut!")).await
-                {
-                    println!("Err: {}", err);
-                };
+                for channel in channels.iter() {
+                    if let Ok(Some(video)) = channel.api.get_last_video().await {
+                        if let Err(err) =
+                            broadcast_message(&ctx_clone, create_video_message(&video)).await
+                        {
+                            println!("Err: {}", err);
+                        };
+                    }
+                }
             }
         });
     }

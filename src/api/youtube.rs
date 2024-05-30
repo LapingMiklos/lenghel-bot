@@ -1,26 +1,19 @@
-use dotenv_codegen::dotenv;
 use reqwest::Error;
 use serde::Deserialize;
 
 use crate::model::video::Video;
 
+#[derive(Clone, Debug)]
 pub struct YoutubeChannelApi {
     api_key: String,
-    channel_id: &'static str,
+    channel_id: String,
 }
 
 impl YoutubeChannelApi {
-    pub fn new_lenghel_api(api_key: String) -> Self {
+    pub fn new(api_key: String, channel_id: String) -> Self {
         YoutubeChannelApi {
             api_key,
-            channel_id: dotenv!("LENGHEL_CHANNEL_ID"),
-        }
-    }
-
-    pub fn new_imi_place_api(api_key: String) -> Self {
-        YoutubeChannelApi {
-            api_key,
-            channel_id: dotenv!("IMI_PLACE_CHANNEL_ID"),
+            channel_id,
         }
     }
 
@@ -38,5 +31,11 @@ impl YoutubeChannelApi {
         let res: ApiResponse = reqwest::get(&url).await?.json().await?;
 
         Ok(res.items.into_iter().next())
+    }
+}
+
+impl PartialEq for YoutubeChannelApi {
+    fn eq(&self, other: &Self) -> bool {
+        self.channel_id == other.channel_id
     }
 }
