@@ -24,7 +24,7 @@ impl YoutubeChannelApi {
         }
 
         let url = format!(
-            "https://www.googleapis.com/youtube/v3/search?key={}&channelId={}&part=snippet,id&order=date&maxResults=1",
+            "https://www.googleapis.com/youtube/v3/playlistItems?key={}&playlistId={}&part=snippet,id&order=date&maxResults=1",
             self.api_key, self.channel_id
         );
 

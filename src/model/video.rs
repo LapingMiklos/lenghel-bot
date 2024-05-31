@@ -3,7 +3,6 @@ use serde::Deserialize;
 
 #[derive(Deserialize, Debug, PartialEq, Eq)]
 pub struct Video {
-    pub id: VideoId,
     pub snippet: Snippet,
 }
 
@@ -17,6 +16,8 @@ pub struct VideoId {
 pub struct Snippet {
     #[serde(rename = "publishedAt")]
     pub published_at: String,
+    #[serde(rename = "resourceId")]
+    pub resource_id: VideoId,
     pub title: String,
 }
 
