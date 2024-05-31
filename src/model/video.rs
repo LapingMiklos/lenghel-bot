@@ -1,18 +1,24 @@
 use chrono::{DateTime, Duration, Utc};
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Debug)]
 pub struct Video {
     pub snippet: Snippet,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+impl PartialEq for Video {
+    fn eq(&self, other: &Self) -> bool {
+        self.snippet.resource_id.video_id == other.snippet.resource_id.video_id
+    }
+}
+
+#[derive(Deserialize, Debug)]
 pub struct VideoId {
     #[serde(rename = "videoId")]
     pub video_id: String,
 }
 
-#[derive(Deserialize, Debug, PartialEq, Eq)]
+#[derive(Deserialize, Debug)]
 pub struct Snippet {
     #[serde(rename = "publishedAt")]
     pub published_at: String,
@@ -29,7 +35,7 @@ impl Video {
             let now = Utc::now();
             let duration = if now > date { now - date } else { date - now };
 
-            duration <= Duration::days(15)
+            duration <= Duration::minutes(10)
         } else {
             false
         }

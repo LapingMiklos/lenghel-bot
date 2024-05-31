@@ -1,3 +1,5 @@
+use std::hash::Hash;
+
 use dotenv_codegen::dotenv;
 
 use crate::api::youtube::YoutubeChannelApi;
@@ -23,5 +25,19 @@ impl YoutubeChannel {
             name: "Lenghel".to_string(),
             api,
         }
+    }
+}
+
+impl PartialEq for YoutubeChannel {
+    fn eq(&self, other: &Self) -> bool {
+        self.api.channel_id == other.api.channel_id
+    }
+}
+
+impl Eq for YoutubeChannel {}
+
+impl Hash for YoutubeChannel {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.name.hash(state)
     }
 }

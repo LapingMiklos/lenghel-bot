@@ -6,7 +6,7 @@ use crate::model::video::Video;
 #[derive(Clone, Debug)]
 pub struct YoutubeChannelApi {
     api_key: String,
-    channel_id: String,
+    pub channel_id: String,
 }
 
 impl YoutubeChannelApi {
@@ -39,3 +39,5 @@ impl PartialEq for YoutubeChannelApi {
         self.channel_id == other.channel_id
     }
 }
+
+impl Eq for YoutubeChannelApi {}

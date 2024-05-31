@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -9,6 +10,7 @@ use tokio::time;
 use crate::config::Config;
 use crate::model::channel::YoutubeChannel;
 
+use crate::model::video::Video;
 use crate::utils::discord::broadcast_message;
 use crate::utils::messaging::create_video_message;
 
@@ -38,7 +40,8 @@ impl EventHandler for Handler {
         let channels = self.channels.clone();
 
         tokio::spawn(async move {
-            let mut request_interval = time::interval(Duration::from_secs(60));
+            let mut request_interval = time::interval(Duration::from_secs(120));
+            let mut last_video: HashMap<&YoutubeChannel, Video> = HashMap::new();
 
             loop {
                 request_interval.tick().await;
@@ -46,12 +49,17 @@ impl EventHandler for Handler {
                 for channel in channels.iter() {
                     match channel.api.get_recent_video().await {
                         Ok(Some(video)) => {
-                            if let Err(err) =
-                                broadcast_message(&ctx_clone, create_video_message(&video, channel))
-                                    .await
-                            {
-                                println!("Err: {}", err);
-                            };
+                            if !last_video.get(&channel).is_some_and(|v| v == &video) {
+                                if let Err(err) = broadcast_message(
+                                    &ctx_clone,
+                                    create_video_message(&video, channel),
+                                )
+                                .await
+                                {
+                                    println!("Err: {}", err);
+                                };
+                                last_video.insert(&channel, video);
+                            }
                         }
                         Ok(None) => {}
                         Err(err) => {
