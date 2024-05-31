@@ -13,6 +13,7 @@ pub struct YoutubeChannel {
 impl YoutubeChannel {
     pub fn imi_place_sa_mananc(api_key: String) -> Self {
         let api = YoutubeChannelApi::new(api_key, dotenv!("IMI_PLACE_UPLOADS_ID").to_string());
+        println!("Imi place Sa Mananc created: {}", api.channel_id);
         YoutubeChannel {
             name: "Imi Place Sa Mananc".to_string(),
             api,
@@ -21,6 +22,7 @@ impl YoutubeChannel {
 
     pub fn lenghel(api_key: String) -> Self {
         let api = YoutubeChannelApi::new(api_key, dotenv!("LENGHEL_UPLOADS_ID").to_string());
+        println!("Lenghel created: {}", api.channel_id);
         YoutubeChannel {
             name: "Lenghel".to_string(),
             api,

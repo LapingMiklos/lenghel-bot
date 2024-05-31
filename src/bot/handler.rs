@@ -35,7 +35,8 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn ready(&self, ctx: Context, _ready: Ready) {
+    async fn ready(&self, ctx: Context, ready: Ready) {
+        println!("Bot started: {}", ready.user.name);
         let ctx_clone = ctx.clone();
         let channels = self.channels.clone();
 

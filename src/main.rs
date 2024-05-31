@@ -4,30 +4,35 @@ pub mod config;
 pub mod model;
 pub mod utils;
 
-use std::{env, fs::File, io::BufReader, sync::Arc};
+use std::{fs::File, io::BufReader, sync::Arc};
 
 use bot::handler::Handler;
 use config::Config;
 use dotenv::dotenv;
 use model::channel::YoutubeChannel;
 use serenity::prelude::*;
+use shuttle_runtime::SecretStore;
 
-#[tokio::main]
-async fn main() {
+#[shuttle_runtime::main]
+async fn serenity(
+    #[shuttle_runtime::Secrets] secrets: SecretStore,
+) -> shuttle_serenity::ShuttleSerenity {
     dotenv().ok();
 
     let file = File::open("config.json").expect("config.json expected");
     let reader = BufReader::new(file);
     let config: Config = serde_json::from_reader(reader).expect("JSON was not well-formatted");
 
-    let token = env::var("DISCORD_TOKEN").expect("DISCORD_TOKEN expected");
-    let yt_api_key = env::var("YT_API_KEY").expect("YT_API_KEY expected");
+    let token = secrets
+        .get("DISCORD_TOKEN")
+        .expect("DISCORD_TOKEN expected");
+    let yt_api_key = secrets.get("YT_API_KEY").expect("YT_API_KEY expected");
 
     let intents = GatewayIntents::GUILD_MESSAGES
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
-    let mut client = Client::builder(&token, intents)
+    let client = Client::builder(&token, intents)
         .event_handler(Handler::new(
             vec![
                 YoutubeChannel::lenghel(yt_api_key.clone()),
@@ -38,7 +43,5 @@ async fn main() {
         .await
         .expect("Err creating client");
 
-    if let Err(why) = client.start().await {
-        println!("Client error: {why:?}");
-    }
+    Ok(client.into())
 }
