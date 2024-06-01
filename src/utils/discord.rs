@@ -1,4 +1,4 @@
-use std::error::Error;
+use anyhow::Result;
 
 use serenity::all::{ChannelType, Context, CreateMessage, GuildChannel};
 
@@ -11,7 +11,7 @@ pub fn choose_channel(channels: Vec<GuildChannel>) -> Option<GuildChannel> {
         .or(first_channel)
 }
 
-pub async fn broadcast_message(ctx: &Context, msg: CreateMessage) -> Result<(), Box<dyn Error>> {
+pub async fn broadcast_message(ctx: &Context, msg: CreateMessage) -> Result<()> {
     let guilds = ctx.cache.guilds();
 
     for guild_id in guilds {

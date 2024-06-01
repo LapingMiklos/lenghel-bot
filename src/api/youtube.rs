@@ -1,4 +1,5 @@
-use reqwest::Error;
+use anyhow::Result;
+
 use serde::Deserialize;
 
 use crate::model::video::Video;
@@ -17,7 +18,7 @@ impl YoutubeChannelApi {
         }
     }
 
-    pub async fn get_recent_video(&self) -> Result<Option<Video>, Error> {
+    pub async fn get_recent_video(&self) -> Result<Option<Video>> {
         #[derive(Deserialize, Debug)]
         struct ApiResponse {
             items: Vec<Video>,

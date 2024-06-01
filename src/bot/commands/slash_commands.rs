@@ -1,5 +1,4 @@
-use std::sync::Arc;
-
+use anyhow::Result;
 use serenity::{
     all::{
         Command, CommandInteraction, Context, CreateCommand, CreateInteractionResponse,
@@ -7,6 +6,7 @@ use serenity::{
     },
     futures::future::join_all,
 };
+use std::sync::Arc;
 
 use crate::config::Config;
 
@@ -25,22 +25,20 @@ impl Commands {
         }
     }
 
-    pub async fn register(&self, ctx: &Context) -> serenity::Result<Vec<Command>> {
-        join_all(
+    pub async fn register(&self, ctx: &Context) -> Result<Vec<Command>> {
+        let commands = join_all(
             self.commands
                 .iter()
                 .map(|c| Command::create_global_command(&ctx.http, c.clone())),
         )
         .await
         .into_iter()
-        .collect::<Result<Vec<_>, _>>()
+        .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(commands)
     }
 
-    pub async fn execute(
-        &self,
-        command: CommandInteraction,
-        ctx: &Context,
-    ) -> serenity::Result<()> {
+    pub async fn execute(&self, command: CommandInteraction, ctx: &Context) -> Result<()> {
         let content: String = match command.data.name.as_str() {
             LENGHEL_GIF => self.config.gifs.get(),
             _ => "Deci effectiv nu se poate așa ceva".to_string(),
