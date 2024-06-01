@@ -2,14 +2,17 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::all::{Context, EventHandler, Ready};
+use serenity::all::{
+    Command, Context, CreateInteractionResponse, CreateInteractionResponseMessage, EventHandler,
+    Interaction, Ready,
+};
 use serenity::async_trait;
-use serenity::model::channel::Message;
 use tokio::time;
 
 use crate::config::Config;
 use crate::model::channel::YoutubeChannel;
 
+use super::commands::lenghel_gif;
 use crate::model::video::Video;
 use crate::utils::discord::broadcast_message;
 use crate::utils::messaging::create_video_message;
@@ -27,16 +30,35 @@ impl Handler {
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn message(&self, ctx: Context, msg: Message) {
-        if msg.content == "/lenghel-gif" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, self.config.gifs.get()).await {
-                println!("Error sending message: {why:?}");
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::Command(command) = interaction {
+            let content = match command.data.name.as_str() {
+                "lenghel-gif" => Some(self.config.gifs.get()),
+                _ => Some("Deci effectiv nu se poate așa ceva".to_string()),
+            };
+
+            if let Some(content) = content {
+                let data = CreateInteractionResponseMessage::new().content(content);
+                let builder = CreateInteractionResponse::Message(data);
+                if let Err(why) = command.create_response(&ctx.http, builder).await {
+                    println!("Cannot respond to slash command: {why}");
+                }
             }
         }
     }
 
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Bot started: {}", ready.user.name);
+
+        match Command::create_global_command(&ctx.http, lenghel_gif::create()).await {
+            Ok(_) => {
+                println!("Registered slash commands")
+            }
+            Err(err) => {
+                println!("Failed to register slash command: {}", err)
+            }
+        }
+
         let ctx_clone = ctx.clone();
         let channels = self.channels.clone();
 
