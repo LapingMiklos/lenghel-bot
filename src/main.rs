@@ -4,7 +4,7 @@ pub mod config;
 pub mod model;
 pub mod utils;
 
-use std::{fs::File, io::BufReader, sync::Arc};
+use std::{fs::File, io::BufReader};
 
 use bot::handler::Handler;
 use config::Config;
@@ -38,7 +38,7 @@ async fn serenity(
                 YoutubeChannel::lenghel(yt_api_key.clone()),
                 YoutubeChannel::imi_place_sa_mananc(yt_api_key.clone()),
             ],
-            Arc::new(config),
+            config,
         ))
         .await
         .expect("Err creating client");

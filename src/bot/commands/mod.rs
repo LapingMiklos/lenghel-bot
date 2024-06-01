@@ -1,2 +1,2 @@
-pub mod lenghel_gif;
+mod lenghel_gif;
 pub mod slash_commands;

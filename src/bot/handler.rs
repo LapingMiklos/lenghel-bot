@@ -2,29 +2,32 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::all::{
-    Command, Context, CreateInteractionResponse, CreateInteractionResponseMessage, EventHandler,
-    Interaction, Ready,
-};
+use serenity::all::{Context, EventHandler, Interaction, Ready};
 use serenity::async_trait;
 use tokio::time;
 
 use crate::config::Config;
 use crate::model::channel::YoutubeChannel;
 
-use super::commands::lenghel_gif;
+use super::commands::slash_commands::Commands;
 use crate::model::video::Video;
 use crate::utils::discord::broadcast_message;
 use crate::utils::messaging::create_video_message;
 
 pub struct Handler {
     channels: Vec<YoutubeChannel>,
-    config: Arc<Config>,
+    _config: Arc<Config>,
+    commands: Commands,
 }
 
 impl Handler {
-    pub fn new(channels: Vec<YoutubeChannel>, config: Arc<Config>) -> Handler {
-        Handler { channels, config }
+    pub fn new(channels: Vec<YoutubeChannel>, config: Config) -> Handler {
+        let config = Arc::new(config);
+        Handler {
+            channels,
+            _config: config.clone(),
+            commands: Commands::new(config),
+        }
     }
 }
 
@@ -32,17 +35,8 @@ impl Handler {
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Interaction::Command(command) = interaction {
-            let content = match command.data.name.as_str() {
-                "lenghel-gif" => Some(self.config.gifs.get()),
-                _ => Some("Deci effectiv nu se poate așa ceva".to_string()),
-            };
-
-            if let Some(content) = content {
-                let data = CreateInteractionResponseMessage::new().content(content);
-                let builder = CreateInteractionResponse::Message(data);
-                if let Err(why) = command.create_response(&ctx.http, builder).await {
-                    println!("Cannot respond to slash command: {why}");
-                }
+            if let Err(err) = self.commands.execute(command, &ctx).await {
+                println!("Cannot respond to slash command: {err}");
             }
         }
     }
@@ -50,7 +44,7 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Bot started: {}", ready.user.name);
 
-        match Command::create_global_command(&ctx.http, lenghel_gif::create()).await {
+        match self.commands.register(&ctx).await {
             Ok(_) => {
                 println!("Registered slash commands")
             }
