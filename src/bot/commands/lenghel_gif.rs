@@ -16,9 +16,13 @@ pub fn create() -> CreateCommand {
     CreateCommand::new(LENGHEL_GIF).description("Un gif păstă medie")
 }
 
-impl RespondToInteraction<LenghelGifInteraction<'_>> for Commands {
-    fn respond(&self, _: LenghelGifInteraction, _: &Context) -> CreateInteractionResponse {
+impl<'a> RespondToInteraction<LenghelGifInteraction<'a>> for Commands {
+    async fn respond(
+        &self,
+        _: LenghelGifInteraction<'a>,
+        _: &Context,
+    ) -> anyhow::Result<CreateInteractionResponse> {
         let res_msg = CreateInteractionResponseMessage::new().content(self.config.gifs.get());
-        CreateInteractionResponse::Message(res_msg)
+        Ok(CreateInteractionResponse::Message(res_msg))
     }
 }

@@ -44,8 +44,8 @@ impl Commands {
 
     pub async fn execute(&self, command: CommandInteraction, ctx: &Context) -> Result<()> {
         let res: CreateInteractionResponse = match command.data.name.as_str() {
-            LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx),
-            SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx),
+            LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx).await?,
+            SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx).await?,
             _ => unimplemented_command(),
         };
 
