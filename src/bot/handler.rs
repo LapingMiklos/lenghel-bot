@@ -4,9 +4,12 @@ use std::time::Duration;
 
 use serenity::all::{Context, EventHandler, Interaction, Ready};
 use serenity::async_trait;
+use shuttle_persist::PersistInstance;
 use tokio::time;
 
 use crate::config::Config;
+use crate::db::subscriber_storage::SubscriberStorage;
+use crate::db::threadsafe_storage::ThreadSafeStorage;
 use crate::model::channel::YoutubeChannel;
 
 use super::commands::slash_commands::Commands;
@@ -17,15 +20,24 @@ use crate::utils::messaging::create_video_message;
 pub struct Handler {
     channels: Vec<YoutubeChannel>,
     _config: Arc<Config>,
+    _storage: Arc<ThreadSafeStorage>,
+    _subscriber_storage: SubscriberStorage,
     commands: Commands,
 }
 
 impl Handler {
-    pub fn new(channels: Vec<YoutubeChannel>, config: Config) -> Handler {
+    pub fn new(
+        channels: Vec<YoutubeChannel>,
+        config: Config,
+        persist_instance: PersistInstance,
+    ) -> Handler {
         let config = Arc::new(config);
+        let storage = Arc::new(ThreadSafeStorage::new(persist_instance));
         Handler {
             channels,
             _config: config.clone(),
+            _storage: storage.clone(),
+            _subscriber_storage: SubscriberStorage::new(storage),
             commands: Commands::new(config),
         }
     }
