@@ -11,9 +11,9 @@ use std::sync::Arc;
 use crate::config::Config;
 
 use super::{
-    lenghel_gif::{self, LenghelGif, LENGHEL_GIF},
+    lenghel_gif::{self, LenghelGifInteraction, LENGHEL_GIF},
     respond::RespondToInteraction,
-    subscribe::{self, Subscribe, SUBSCRIBE},
+    subscribe::{self, SubscribeInteraction, SUBSCRIBE},
 };
 
 pub struct Commands {
@@ -44,8 +44,8 @@ impl Commands {
 
     pub async fn execute(&self, command: CommandInteraction, ctx: &Context) -> Result<()> {
         let res: CreateInteractionResponse = match command.data.name.as_str() {
-            LENGHEL_GIF => self.respond(LenghelGif(&command), &ctx),
-            SUBSCRIBE => self.respond(Subscribe(&command), &ctx),
+            LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx),
+            SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx),
             _ => unimplemented_command(),
         };
 
