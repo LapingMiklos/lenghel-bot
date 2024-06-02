@@ -11,13 +11,17 @@ use config::Config;
 use dotenv::dotenv;
 use model::channel::YoutubeChannel;
 use serenity::prelude::*;
+use shuttle_persist::PersistInstance;
 use shuttle_runtime::SecretStore;
 
 #[shuttle_runtime::main]
 async fn serenity(
     #[shuttle_runtime::Secrets] secrets: SecretStore,
+    #[shuttle_persist::Persist] persist: PersistInstance,
 ) -> shuttle_serenity::ShuttleSerenity {
     dotenv().ok();
+
+    let _ = persist.clear();
 
     let file = File::open("config.json").expect("config.json expected");
     let reader = BufReader::new(file);
