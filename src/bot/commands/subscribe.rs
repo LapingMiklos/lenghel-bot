@@ -1,6 +1,6 @@
 use serenity::all::{
     CommandInteraction, Context, CreateCommand, CreateInteractionResponse,
-    CreateInteractionResponseMessage, CreateMessage,
+    CreateInteractionResponseMessage, CreateMessage, Mentionable,
 };
 
 use crate::impl_deref_command_interaction;
@@ -22,16 +22,17 @@ impl<'a> RespondToInteraction<SubscribeInteraction<'a>> for Commands {
         interaction: SubscribeInteraction<'a>,
         ctx: &Context,
     ) -> anyhow::Result<CreateInteractionResponse> {
-        let _ = interaction
+        let content = format!(
+            "Mersi pentru subscribe, ești păstă medie {}",
+            interaction.user.mention()
+        );
+
+        interaction
             .user
-            .direct_message(
-                &ctx.http,
-                CreateMessage::new().content("Mersi pentru subscribe, ești păstă medie"),
-            )
+            .direct_message(&ctx.http, CreateMessage::new().content(&content))
             .await?;
 
-        let res_msg = CreateInteractionResponseMessage::new()
-            .content("Mersi pentru subscribe, ești păstă medie");
+        let res_msg = CreateInteractionResponseMessage::new().content(&content);
         Ok(CreateInteractionResponse::Message(res_msg))
     }
 }
