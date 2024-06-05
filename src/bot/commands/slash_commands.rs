@@ -14,6 +14,7 @@ use super::{
     lenghel_gif::{self, LenghelGifInteraction, LENGHEL_GIF},
     respond::RespondToInteraction,
     subscribe::{self, SubscribeInteraction, SUBSCRIBE},
+    unsubscribe::{self, UnSubscribeInteraction, UNSUBSCRIBE},
 };
 
 pub struct Commands {
@@ -27,7 +28,11 @@ impl Commands {
         Commands {
             config,
             subscriber_storage,
-            commands: vec![lenghel_gif::create(), subscribe::create()],
+            commands: vec![
+                lenghel_gif::create(),
+                subscribe::create(),
+                unsubscribe::create(),
+            ],
         }
     }
 
@@ -48,6 +53,7 @@ impl Commands {
         let res: CreateInteractionResponse = match command.data.name.as_str() {
             LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx).await?,
             SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx).await?,
+            UNSUBSCRIBE => self.respond(UnSubscribeInteraction(&command), &ctx).await?,
             _ => unimplemented_command(),
         };
 

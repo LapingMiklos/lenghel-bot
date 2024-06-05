@@ -36,7 +36,7 @@ impl SubscriberStorage {
             .storage
             .load::<HashSet<u64>>(USERS)?
             .into_iter()
-            .filter(|u| u == &user.get())
+            .filter(|u| u != &user.get())
             .collect();
 
         self.storage.save(USERS, users)?;
