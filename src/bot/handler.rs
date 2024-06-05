@@ -33,12 +33,13 @@ impl Handler {
     ) -> Handler {
         let config = Arc::new(config);
         let storage = Arc::new(ThreadSafeStorage::new(persist_instance));
+        let subscriber_storage = SubscriberStorage::new(storage.clone());
         Handler {
             channels,
             _config: config.clone(),
             _storage: storage.clone(),
-            _subscriber_storage: SubscriberStorage::new(storage),
-            commands: Commands::new(config),
+            _subscriber_storage: subscriber_storage.clone(),
+            commands: Commands::new(config, subscriber_storage),
         }
     }
 }

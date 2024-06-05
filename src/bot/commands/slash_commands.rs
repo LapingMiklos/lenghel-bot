@@ -8,7 +8,7 @@ use serenity::{
 };
 use std::sync::Arc;
 
-use crate::config::Config;
+use crate::{config::Config, db::subscriber_storage::SubscriberStorage};
 
 use super::{
     lenghel_gif::{self, LenghelGifInteraction, LENGHEL_GIF},
@@ -18,13 +18,15 @@ use super::{
 
 pub struct Commands {
     pub config: Arc<Config>,
+    pub subscriber_storage: SubscriberStorage,
     commands: Vec<CreateCommand>,
 }
 
 impl Commands {
-    pub fn new(config: Arc<Config>) -> Self {
+    pub fn new(config: Arc<Config>, subscriber_storage: SubscriberStorage) -> Self {
         Commands {
             config,
+            subscriber_storage,
             commands: vec![lenghel_gif::create(), subscribe::create()],
         }
     }
