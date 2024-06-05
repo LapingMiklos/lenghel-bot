@@ -12,13 +12,11 @@ pub struct SubscriberStorage {
 const USERS: &'static str = "USERS";
 
 impl SubscriberStorage {
-    pub fn new(storage: Arc<ThreadSafeStorage>) -> Self {
+    pub fn new(storage: Arc<ThreadSafeStorage>) -> anyhow::Result<Self> {
         if let Err(_) = storage.load::<HashSet<u64>>(USERS) {
-            if let Err(err) = storage.save(USERS, HashSet::<u64>::new()) {
-                println!("Unable to access storage: {err}")
-            };
+            storage.save(USERS, HashSet::<u64>::new())?;
         }
-        SubscriberStorage { storage }
+        Ok(SubscriberStorage { storage })
     }
 
     pub fn all(&self) -> anyhow::Result<HashSet<UserId>> {

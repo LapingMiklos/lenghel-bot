@@ -33,7 +33,8 @@ impl Handler {
     ) -> Handler {
         let config = Arc::new(config);
         let storage = Arc::new(ThreadSafeStorage::new(persist_instance));
-        let subscriber_storage = SubscriberStorage::new(storage.clone());
+        let subscriber_storage =
+            SubscriberStorage::new(storage.clone()).expect("Unable to create storage");
         Handler {
             channels,
             _config: config.clone(),
