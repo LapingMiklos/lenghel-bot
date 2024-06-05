@@ -22,10 +22,20 @@ impl<'a> RespondToInteraction<SubscribeInteraction<'a>> for Commands {
         interaction: SubscribeInteraction<'a>,
         ctx: &Context,
     ) -> anyhow::Result<CreateInteractionResponse> {
-        let content = format!(
-            "Mersi pentru subscribe, ești păstă medie {}",
-            interaction.user.mention()
-        );
+        let users = self.subscriber_storage.all()?;
+
+        let content = if users.contains(&interaction.user.id) {
+            format!(
+                "Bă, da tu ai mai dat subscribe bivolule {}",
+                interaction.user.mention()
+            )
+        } else {
+            self.subscriber_storage.add(&interaction.user.id)?;
+            format!(
+                "Mersi pentru subscribe, ești păstă medie {}",
+                interaction.user.mention()
+            )
+        };
 
         interaction
             .user
