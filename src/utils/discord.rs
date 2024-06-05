@@ -1,6 +1,8 @@
+use std::collections::HashSet;
+
 use anyhow::Result;
 
-use serenity::all::{ChannelType, Context, CreateMessage, GuildChannel};
+use serenity::all::{ChannelType, Context, CreateMessage, GuildChannel, UserId};
 
 pub fn choose_channel(channels: Vec<GuildChannel>) -> Option<GuildChannel> {
     let mut channels = channels.into_iter();
@@ -11,7 +13,11 @@ pub fn choose_channel(channels: Vec<GuildChannel>) -> Option<GuildChannel> {
         .or(first_channel)
 }
 
-pub async fn broadcast_message(ctx: &Context, msg: CreateMessage) -> Result<()> {
+pub async fn broadcast_message(
+    ctx: &Context,
+    msg: CreateMessage,
+    users: &HashSet<UserId>,
+) -> Result<()> {
     let guilds = ctx.cache.guilds();
 
     for guild_id in guilds {
@@ -33,6 +39,14 @@ pub async fn broadcast_message(ctx: &Context, msg: CreateMessage) -> Result<()> 
         if let Some(channel) = choose_channel(channels) {
             if let Err(err) = channel.id.send_message(&ctx.http, msg.clone()).await {
                 println!("Err: {}", err)
+            }
+        }
+    }
+
+    for uid in users {
+        if let Ok(user) = uid.to_user(&ctx.http).await {
+            if let Err(err) = user.direct_message(&ctx.http, msg.clone()).await {
+                println!("Error sending direct message {err}");
             }
         }
     }

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -21,7 +21,7 @@ pub struct Handler {
     channels: Vec<YoutubeChannel>,
     _config: Arc<Config>,
     _storage: Arc<ThreadSafeStorage>,
-    _subscriber_storage: SubscriberStorage,
+    subscriber_storage: SubscriberStorage,
     commands: Commands,
 }
 
@@ -39,7 +39,7 @@ impl Handler {
             channels,
             _config: config.clone(),
             _storage: storage.clone(),
-            _subscriber_storage: subscriber_storage.clone(),
+            subscriber_storage: subscriber_storage.clone(),
             commands: Commands::new(config, subscriber_storage),
         }
     }
@@ -69,6 +69,7 @@ impl EventHandler for Handler {
 
         let ctx_clone = ctx.clone();
         let channels = self.channels.clone();
+        let subscriber_storage = self.subscriber_storage.clone();
 
         tokio::spawn(async move {
             let mut request_interval = time::interval(Duration::from_secs(120));
@@ -80,10 +81,12 @@ impl EventHandler for Handler {
                 for channel in channels.iter() {
                     match channel.api.get_recent_video().await {
                         Ok(Some(video)) => {
+                            let users = subscriber_storage.all().unwrap_or(HashSet::new());
                             if !last_video.get(&channel).is_some_and(|v| v == &video) {
                                 if let Err(err) = broadcast_message(
                                     &ctx_clone,
                                     create_video_message(&video, channel),
+                                    &users,
                                 )
                                 .await
                                 {
