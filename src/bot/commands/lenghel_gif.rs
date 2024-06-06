@@ -3,7 +3,7 @@ use serenity::all::{
     CreateInteractionResponseMessage,
 };
 
-use crate::impl_deref_command_interaction;
+use crate::{impl_deref_command_interaction, utils::GetRandom};
 
 use super::{respond::RespondToInteraction, slash_commands::Commands};
 
@@ -22,7 +22,11 @@ impl<'a> RespondToInteraction<LenghelGifInteraction<'a>> for Commands {
         _: LenghelGifInteraction<'a>,
         _: &Context,
     ) -> anyhow::Result<CreateInteractionResponse> {
-        let res_msg = CreateInteractionResponseMessage::new().content(self.config.gifs.get());
+        let gif: &str = match self.config.gifs.get_random() {
+            Some(gif) => gif,
+            None => "Nu am gif :(",
+        };
+        let res_msg = CreateInteractionResponseMessage::new().content(gif);
         Ok(CreateInteractionResponse::Message(res_msg))
     }
 }
