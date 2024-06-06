@@ -4,4 +4,5 @@ use serde::Deserialize;
 pub struct Config {
     pub gifs: Vec<String>,
     pub quotes: Vec<String>,
+    pub ratings: Vec<String>,
 }

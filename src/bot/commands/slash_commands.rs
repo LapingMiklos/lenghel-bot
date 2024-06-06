@@ -12,6 +12,7 @@ use crate::{config::Config, db::subscriber_storage::SubscriberStorage};
 
 use super::{
     lenghel_gif::{self, LenghelGifInteraction, LENGHEL_GIF},
+    lenghel_rate::{self, LenghelRateInteraction, LENGHEL_RATE},
     respond::RespondToInteraction,
     subscribe::{self, SubscribeInteraction, SUBSCRIBE},
     unsubscribe::{self, UnSubscribeInteraction, UNSUBSCRIBE},
@@ -32,6 +33,7 @@ impl Commands {
                 lenghel_gif::create(),
                 subscribe::create(),
                 unsubscribe::create(),
+                lenghel_rate::create(),
             ],
         }
     }
@@ -54,6 +56,10 @@ impl Commands {
             LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx).await?,
             SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx).await?,
             UNSUBSCRIBE => self.respond(UnSubscribeInteraction(&command), &ctx).await?,
+            LENGHEL_RATE => {
+                self.respond(LenghelRateInteraction(&command, self.config.clone()), &ctx)
+                    .await?
+            }
             _ => unimplemented_command(),
         };
 

@@ -18,5 +18,11 @@
     ],
     "quotes": [
         "Abominațiune, sau cum îi cuvintele ăla, să zici că ai mâncat acolo"
+    ],
+    "ratings": [
+        "Ești păstă medie",
+        "Ești medie",
+        "Ești sub medie",
+        "Ești un bivol"
     ]
 }
