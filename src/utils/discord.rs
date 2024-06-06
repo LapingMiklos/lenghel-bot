@@ -16,7 +16,7 @@ pub fn choose_channel(channels: Vec<GuildChannel>) -> Option<GuildChannel> {
 pub async fn broadcast_message(
     ctx: &Context,
     msg: CreateMessage,
-    users: &HashSet<UserId>,
+    users: Option<&HashSet<UserId>>,
 ) -> Result<()> {
     let guilds = ctx.cache.guilds();
 
@@ -43,10 +43,12 @@ pub async fn broadcast_message(
         }
     }
 
-    for uid in users {
-        if let Ok(user) = uid.to_user(&ctx.http).await {
-            if let Err(err) = user.direct_message(&ctx.http, msg.clone()).await {
-                println!("Error sending direct message {err}");
+    if let Some(users) = users {
+        for uid in users {
+            if let Ok(user) = uid.to_user(&ctx.http).await {
+                if let Err(err) = user.direct_message(&ctx.http, msg.clone()).await {
+                    println!("Error sending direct message {err}");
+                }
             }
         }
     }

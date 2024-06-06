@@ -1,8 +1,11 @@
 use std::collections::{HashMap, HashSet};
+use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use serenity::all::{Context, EventHandler, Interaction, Ready};
+use chrono::Utc;
+use cron::Schedule;
+use serenity::all::{Context, CreateMessage, EventHandler, Interaction, Ready};
 use serenity::async_trait;
 use shuttle_persist::PersistInstance;
 use tokio::time;
@@ -11,6 +14,7 @@ use crate::config::Config;
 use crate::db::subscriber_storage::SubscriberStorage;
 use crate::db::threadsafe_storage::ThreadSafeStorage;
 use crate::model::channel::YoutubeChannel;
+use crate::utils::GetRandom;
 
 use super::commands::slash_commands::Commands;
 use crate::model::video::Video;
@@ -19,7 +23,7 @@ use crate::utils::messaging::create_video_message;
 
 pub struct Handler {
     channels: Vec<YoutubeChannel>,
-    _config: Arc<Config>,
+    config: Arc<Config>,
     _storage: Arc<ThreadSafeStorage>,
     subscriber_storage: SubscriberStorage,
     commands: Commands,
@@ -37,7 +41,7 @@ impl Handler {
             SubscriberStorage::new(storage.clone()).expect("Unable to create storage");
         Handler {
             channels,
-            _config: config.clone(),
+            config: config.clone(),
             _storage: storage.clone(),
             subscriber_storage: subscriber_storage.clone(),
             commands: Commands::new(config, subscriber_storage),
@@ -67,6 +71,13 @@ impl EventHandler for Handler {
             }
         }
 
+        self.notification_thread(&ctx);
+        self.daily_quote(&ctx);
+    }
+}
+
+impl Handler {
+    fn notification_thread(&self, ctx: &Context) {
         let ctx_clone = ctx.clone();
         let channels = self.channels.clone();
         let subscriber_storage = self.subscriber_storage.clone();
@@ -86,7 +97,7 @@ impl EventHandler for Handler {
                                 if let Err(err) = broadcast_message(
                                     &ctx_clone,
                                     create_video_message(&video, channel),
-                                    &users,
+                                    Some(&users),
                                 )
                                 .await
                                 {
@@ -100,6 +111,40 @@ impl EventHandler for Handler {
                             println!("Err: {}", err);
                         }
                     }
+                }
+            }
+        });
+    }
+
+    fn daily_quote(&self, ctx: &Context) {
+        let ctx = ctx.clone();
+        let config = self.config.clone();
+
+        tokio::spawn(async move {
+            let cron_expr = "0 0 12 * * * *";
+            let schedule = Schedule::from_str(cron_expr).expect("Invalid cron expression");
+
+            loop {
+                let now = Utc::now();
+                let next = schedule.upcoming(Utc).take(1).next().unwrap_or(now);
+                let duration = (next - now).to_std().unwrap_or(Duration::from_secs(0));
+
+                time::sleep(duration).await;
+
+                let quote: &str = match config.quotes.get_random() {
+                    Some(quote) => quote,
+                    None => "Nu mai am citate :(",
+                };
+
+                if let Err(err) = broadcast_message(
+                    &ctx,
+                    CreateMessage::new()
+                        .content(format!("Daily Ionuț Lenghel quote: \"{}\"", quote)),
+                    None,
+                )
+                .await
+                {
+                    println!("Err: {err}")
                 }
             }
         });
