@@ -45,12 +45,16 @@ pub async fn broadcast_message(
 
     if let Some(users) = users {
         for uid in users {
-            if let Ok(user) = uid.to_user(&ctx.http).await {
-                if let Err(err) = user.direct_message(&ctx.http, msg.clone()).await {
-                    println!("Error sending direct message {err}");
-                }
+            if let Err(err) = send_dm(uid, ctx, &msg).await {
+                println!("Error sending direct message {err}");
             }
         }
+    }
+
+    async fn send_dm(uid: &UserId, ctx: &Context, msg: &CreateMessage) -> anyhow::Result<()> {
+        let user = uid.to_user(&ctx.http).await?;
+        user.direct_message(&ctx.http, msg.clone()).await?;
+        Ok(())
     }
 
     Ok(())

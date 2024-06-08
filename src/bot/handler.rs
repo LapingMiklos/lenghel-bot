@@ -78,42 +78,46 @@ impl EventHandler for Handler {
 
 impl Handler {
     fn notification_thread(&self, ctx: &Context) {
-        let ctx_clone = ctx.clone();
+        let ctx = ctx.clone();
         let channels = self.channels.clone();
         let subscriber_storage = self.subscriber_storage.clone();
 
         tokio::spawn(async move {
             let mut request_interval = time::interval(Duration::from_secs(120));
-            let mut last_video: HashMap<&YoutubeChannel, Video> = HashMap::new();
+            let mut last_videos: HashMap<&YoutubeChannel, Video> = HashMap::new();
 
             loop {
                 request_interval.tick().await;
 
                 for channel in channels.iter() {
-                    match channel.api.get_recent_video().await {
+                    match send(channel, last_videos.get(channel), &subscriber_storage, &ctx).await {
                         Ok(Some(video)) => {
-                            let users = subscriber_storage.all().unwrap_or(HashSet::new());
-                            if !last_video.get(&channel).is_some_and(|v| v == &video) {
-                                if let Err(err) = broadcast_message(
-                                    &ctx_clone,
-                                    create_video_message(&video, channel),
-                                    Some(&users),
-                                )
-                                .await
-                                {
-                                    println!("Err: {}", err);
-                                };
-                                last_video.insert(&channel, video);
-                            }
+                            last_videos.insert(channel, video);
                         }
-                        Ok(None) => {}
-                        Err(err) => {
-                            println!("Err: {}", err);
-                        }
+                        Err(err) => println!("Err: {err}"),
+                        _ => {}
                     }
                 }
             }
         });
+
+        async fn send(
+            channel: &YoutubeChannel,
+            last_video: Option<&Video>,
+            subscriber_storage: &SubscriberStorage,
+            ctx: &Context,
+        ) -> anyhow::Result<Option<Video>> {
+            if let Some(video) = channel.api.get_recent_video().await? {
+                let users = subscriber_storage.all().unwrap_or(HashSet::new());
+                if !last_video.is_some_and(|v| v == &video) {
+                    broadcast_message(ctx, create_video_message(&video, channel), Some(&users))
+                        .await?;
+                }
+                Ok(Some(video))
+            } else {
+                Ok(None)
+            }
+        }
     }
 
     fn daily_quote(&self, ctx: &Context) {
