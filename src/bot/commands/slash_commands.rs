@@ -56,10 +56,7 @@ impl Commands {
             LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx).await?,
             SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx).await?,
             UNSUBSCRIBE => self.respond(UnSubscribeInteraction(&command), &ctx).await?,
-            LENGHEL_RATE => {
-                self.respond(LenghelRateInteraction(&command, self.config.clone()), &ctx)
-                    .await?
-            }
+            LENGHEL_RATE => self.respond(LenghelRateInteraction(&command), &ctx).await?,
             _ => unimplemented_command(),
         };
 

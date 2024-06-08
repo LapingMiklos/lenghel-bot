@@ -1,18 +1,16 @@
-use std::sync::Arc;
-
 use serenity::all::{
     CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
     CreateCommandOption, CreateInteractionResponse, CreateInteractionResponseMessage, Mentionable,
 };
 
-use crate::{config::Config, impl_deref_command_interaction, utils::GetRandom};
+use crate::{impl_deref_command_interaction, utils::GetRandom};
 
 use super::{respond::RespondToInteraction, slash_commands::Commands};
 
 pub const LENGHEL_RATE: &'static str = "lenghel-rate";
 const USER: &'static str = "user";
 
-pub struct LenghelRateInteraction<'a>(pub &'a CommandInteraction, pub Arc<Config>);
+pub struct LenghelRateInteraction<'a>(pub &'a CommandInteraction);
 impl_deref_command_interaction!(LenghelRateInteraction<'a>);
 
 pub fn create() -> CreateCommand {
@@ -38,7 +36,7 @@ impl<'a> RespondToInteraction<LenghelRateInteraction<'a>> for Commands {
             .next()
             .map(|o| &o.value)
         {
-            let rating: &str = match interaction.1.ratings.get_random() {
+            let rating: &str = match self.config.ratings.get_random() {
                 Some(rating) => rating,
                 None => "Nu știu ce să zic",
             };
