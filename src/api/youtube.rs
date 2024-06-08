@@ -11,10 +11,10 @@ pub struct YoutubeChannelApi {
 }
 
 impl YoutubeChannelApi {
-    pub fn new(api_key: String, channel_id: String) -> Self {
+    pub fn new(api_key: impl Into<String>, channel_id: impl Into<String>) -> Self {
         YoutubeChannelApi {
-            api_key,
-            channel_id,
+            api_key: api_key.into(),
+            channel_id: channel_id.into(),
         }
     }
 

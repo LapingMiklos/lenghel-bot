@@ -38,8 +38,8 @@ async fn serenity(
     let client = Client::builder(&token, intents)
         .event_handler(Handler::new(
             vec![
-                YoutubeChannel::lenghel(yt_api_key.clone()),
-                YoutubeChannel::imi_place_sa_mananc(yt_api_key.clone()),
+                YoutubeChannel::lenghel(&yt_api_key),
+                YoutubeChannel::imi_place_sa_mananc(&yt_api_key),
             ],
             config,
             persist,
