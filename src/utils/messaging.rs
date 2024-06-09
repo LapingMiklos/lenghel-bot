@@ -12,11 +12,11 @@ pub fn create_video_message(video: &Video, channel: &YoutubeChannel) -> CreateMe
     ))
 }
 
-pub fn create_quote_message(quote: &Quote) -> CreateMessage {
+pub fn create_quote_message(quote: &Quote, thumbnail: Option<&str>) -> CreateMessage {
     let embed = CreateEmbed::new()
         .title("Daily Ionuț Lenghel quote:")
         .field("", format!("\"{}\"", quote.text), true)
-        .thumbnail(THUMBNAIL)
+        .thumbnail(thumbnail.unwrap_or(THUMBNAIL))
         .url(&quote.source);
 
     CreateMessage::new().add_embed(embed)

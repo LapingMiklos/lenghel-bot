@@ -22,10 +22,7 @@ impl<'a> RespondToInteraction<LenghelGifInteraction<'a>> for Commands {
         _: LenghelGifInteraction<'a>,
         _: &Context,
     ) -> anyhow::Result<CreateInteractionResponse> {
-        let gif: &str = match self.config.gifs.get_random() {
-            Some(gif) => gif,
-            None => "Nu am gif :(",
-        };
+        let gif: &str = self.config.gifs.get_random().unwrap_or("Nu am gif :(");
         let res_msg = CreateInteractionResponseMessage::new().content(gif);
         Ok(CreateInteractionResponse::Message(res_msg))
     }

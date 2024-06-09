@@ -7,4 +7,5 @@ pub struct Config {
     pub gifs: Vec<String>,
     pub quotes: Vec<Quote>,
     pub ratings: Vec<String>,
+    pub thumbnails: Vec<String>,
 }

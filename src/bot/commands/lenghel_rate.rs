@@ -36,10 +36,11 @@ impl<'a> RespondToInteraction<LenghelRateInteraction<'a>> for Commands {
             .next()
             .map(|o| &o.value)
         {
-            let rating: &str = match self.config.ratings.get_random() {
-                Some(rating) => rating,
-                None => "Nu știu ce să zic",
-            };
+            let rating: &str = self
+                .config
+                .ratings
+                .get_random()
+                .unwrap_or("Nu știu ce să zic");
             format!("{} {}", rating, uid.mention())
         } else {
             "Something went wrong".into()

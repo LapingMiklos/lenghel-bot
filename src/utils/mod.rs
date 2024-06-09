@@ -15,12 +15,23 @@ macro_rules! impl_deref_command_interaction {
     };
 }
 
-pub trait GetRandom<T> {
-    fn get_random<'a>(&'a self) -> Option<&'a T>;
+pub trait GetRandom<'a, T: ?Sized> {
+    fn get_random(&'a self) -> Option<&'a T>;
 }
 
-impl<T> GetRandom<T> for Vec<T> {
-    fn get_random<'a>(&'a self) -> Option<&'a T> {
+impl<'a> GetRandom<'a, str> for Vec<String> {
+    fn get_random(&'a self) -> Option<&'a str> {
+        if self.len() == 0 {
+            return None;
+        }
+        let i = rand::random::<usize>() % self.len();
+
+        Some(&self[i])
+    }
+}
+
+impl<'a, T> GetRandom<'a, T> for Vec<T> {
+    fn get_random(&'a self) -> Option<&'a T> {
         if self.len() == 0 {
             return None;
         }

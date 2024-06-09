@@ -125,7 +125,7 @@ impl Handler {
         let config = self.config.clone();
 
         tokio::spawn(async move {
-            let cron_expr = "0 0 12 * * * *";
+            let cron_expr = "0 * * * * * *";
             let schedule = Schedule::from_str(cron_expr).expect("Invalid cron expression");
 
             loop {
@@ -136,7 +136,7 @@ impl Handler {
                 time::sleep(duration).await;
 
                 let msg: CreateMessage = match config.quotes.get_random() {
-                    Some(quote) => create_quote_message(quote),
+                    Some(quote) => create_quote_message(quote, config.thumbnails.get_random()),
                     None => CreateMessage::new().content("Nu mai am citate :("),
                 };
 
