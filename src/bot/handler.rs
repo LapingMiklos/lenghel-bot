@@ -125,7 +125,7 @@ impl Handler {
         let config = self.config.clone();
 
         tokio::spawn(async move {
-            let cron_expr = "0 * * * * * *";
+            let cron_expr = "0 0 12 * * * *";
             let schedule = Schedule::from_str(cron_expr).expect("Invalid cron expression");
 
             loop {
