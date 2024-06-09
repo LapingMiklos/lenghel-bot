@@ -19,7 +19,7 @@ use crate::utils::GetRandom;
 use super::commands::slash_commands::Commands;
 use crate::model::video::Video;
 use crate::utils::discord::broadcast_message;
-use crate::utils::messaging::create_video_message;
+use crate::utils::messaging::{create_quote_message, create_video_message};
 
 pub struct Handler {
     channels: Vec<YoutubeChannel>,
@@ -135,19 +135,12 @@ impl Handler {
 
                 time::sleep(duration).await;
 
-                let quote: &str = match config.quotes.get_random() {
-                    Some(quote) => quote,
-                    None => "Nu mai am citate :(",
+                let msg: CreateMessage = match config.quotes.get_random() {
+                    Some(quote) => create_quote_message(quote),
+                    None => CreateMessage::new().content("Nu mai am citate :("),
                 };
 
-                if let Err(err) = broadcast_message(
-                    &ctx,
-                    CreateMessage::new()
-                        .content(format!("Daily Ionuț Lenghel quote: \"{}\"", quote)),
-                    None,
-                )
-                .await
-                {
+                if let Err(err) = broadcast_message(&ctx, msg, None).await {
                     println!("Err: {err}")
                 }
             }
