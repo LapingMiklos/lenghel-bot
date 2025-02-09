@@ -1,4 +1,4 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -7,12 +7,9 @@ use chrono::Utc;
 use cron::Schedule;
 use serenity::all::{Context, CreateMessage, EventHandler, Interaction, Ready};
 use serenity::async_trait;
-use shuttle_persist::PersistInstance;
 use tokio::time;
 
 use crate::config::Config;
-use crate::db::subscriber_storage::SubscriberStorage;
-use crate::db::threadsafe_storage::ThreadSafeStorage;
 use crate::model::channel::YoutubeChannel;
 use crate::utils::GetRandom;
 
@@ -24,8 +21,6 @@ use crate::utils::messaging::{create_quote_message, create_video_message};
 pub struct Handler {
     channels: Vec<YoutubeChannel>,
     config: Arc<Config>,
-    _storage: Arc<ThreadSafeStorage>,
-    subscriber_storage: SubscriberStorage,
     commands: Commands,
 }
 
@@ -33,18 +28,12 @@ impl Handler {
     pub fn new(
         channels: Vec<YoutubeChannel>,
         config: Config,
-        persist_instance: PersistInstance,
     ) -> Handler {
         let config = Arc::new(config);
-        let storage = Arc::new(ThreadSafeStorage::new(persist_instance));
-        let subscriber_storage =
-            SubscriberStorage::new(storage.clone()).expect("Unable to create storage");
         Handler {
             channels,
             config: config.clone(),
-            _storage: storage.clone(),
-            subscriber_storage: subscriber_storage.clone(),
-            commands: Commands::new(config, subscriber_storage),
+            commands: Commands::new(config),
         }
     }
 }
@@ -80,7 +69,6 @@ impl Handler {
     fn notification_thread(&self, ctx: &Context) {
         let ctx = ctx.clone();
         let channels = self.channels.clone();
-        let subscriber_storage = self.subscriber_storage.clone();
 
         tokio::spawn(async move {
             let mut request_interval = time::interval(Duration::from_secs(120));
@@ -90,7 +78,7 @@ impl Handler {
                 request_interval.tick().await;
 
                 for channel in channels.iter() {
-                    match send(channel, last_videos.get(channel), &subscriber_storage, &ctx).await {
+                    match send(channel, last_videos.get(channel), &ctx).await {
                         Ok(Some(video)) => {
                             last_videos.insert(channel, video);
                         }
@@ -104,13 +92,11 @@ impl Handler {
         async fn send(
             channel: &YoutubeChannel,
             last_video: Option<&Video>,
-            subscriber_storage: &SubscriberStorage,
             ctx: &Context,
         ) -> anyhow::Result<Option<Video>> {
             if let Some(video) = channel.api.get_recent_video().await? {
-                let users = subscriber_storage.all().unwrap_or(HashSet::new());
                 if !last_video.is_some_and(|v| v == &video) {
-                    broadcast_message(ctx, create_video_message(&video, channel), Some(&users))
+                    broadcast_message(ctx, create_video_message(&video, channel), None)
                         .await?;
                 }
                 Ok(Some(video))

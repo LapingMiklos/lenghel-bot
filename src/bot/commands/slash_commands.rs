@@ -8,31 +8,25 @@ use serenity::{
 };
 use std::sync::Arc;
 
-use crate::{config::Config, db::subscriber_storage::SubscriberStorage};
+use crate::config::Config;
 
 use super::{
     lenghel_gif::{self, LenghelGifInteraction, LENGHEL_GIF},
     lenghel_rate::{self, LenghelRateInteraction, LENGHEL_RATE},
     respond::RespondToInteraction,
-    subscribe::{self, SubscribeInteraction, SUBSCRIBE},
-    unsubscribe::{self, UnSubscribeInteraction, UNSUBSCRIBE},
 };
 
 pub struct Commands {
     pub config: Arc<Config>,
-    pub subscriber_storage: SubscriberStorage,
     commands: Vec<CreateCommand>,
 }
 
 impl Commands {
-    pub fn new(config: Arc<Config>, subscriber_storage: SubscriberStorage) -> Self {
+    pub fn new(config: Arc<Config>) -> Self {
         Commands {
             config,
-            subscriber_storage,
             commands: vec![
                 lenghel_gif::create(),
-                subscribe::create(),
-                unsubscribe::create(),
                 lenghel_rate::create(),
             ],
         }
@@ -54,8 +48,6 @@ impl Commands {
     pub async fn execute(&self, command: CommandInteraction, ctx: &Context) -> Result<()> {
         let res: CreateInteractionResponse = match command.data.name.as_str() {
             LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx).await?,
-            SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx).await?,
-            UNSUBSCRIBE => self.respond(UnSubscribeInteraction(&command), &ctx).await?,
             LENGHEL_RATE => self.respond(LenghelRateInteraction(&command), &ctx).await?,
             _ => unimplemented_command(),
         };
