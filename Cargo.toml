@@ -6,17 +6,16 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.93"
-shuttle-runtime = "0.48.0"
-shuttle-serenity = "0.48.0"
-shuttle-persist = "0.48.0"
-reqwest = { version = "0.12.9", features = ["json"] }
-serde = { version = "1.0.214", features = ["derive"] }
-serde_json = "1.0.132"
+anyhow = "1.0.95"
+shuttle-runtime = "0.52.0"
+shuttle-serenity = "0.52.0"
+reqwest = { version = "0.12.12", features = ["json"] }
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.138"
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
-serenity = "0.12.2"
-tokio = { version = "1.41.1", features = ["macros", "rt-multi-thread", "full"] }
-chrono = "0.4"
-rand = "0.8"
-cron = "0.13.0"
+serenity = "0.12.4"
+tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread", "full"] }
+chrono = "0.4.39"
+rand = "0.8.0"
+cron = "0.15.0"
