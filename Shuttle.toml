@@ -1,1 +1,4 @@
-assets = [".env", "config.json"]
+[deploy]
+assets = [".env"]
+[build]
+assets = ["config.json"]
