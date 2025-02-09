@@ -8,27 +8,31 @@ use serenity::{
 };
 use std::sync::Arc;
 
-use crate::config::Config;
+use crate::{config::Config, db::SubscriberStorage};
 
 use super::{
     lenghel_gif::{self, LenghelGifInteraction, LENGHEL_GIF},
     lenghel_rate::{self, LenghelRateInteraction, LENGHEL_RATE},
-    respond::RespondToInteraction,
+    respond::RespondToInteraction, subscribe::{self, SubscribeInteraction, SUBSCRIBE}, unsubscribe::{self, UnSubscribeInteraction, UNSUBSCRIBE},
 };
 
 pub struct Commands {
     pub config: Arc<Config>,
     commands: Vec<CreateCommand>,
+    pub subscriber_storage: SubscriberStorage,
 }
 
 impl Commands {
-    pub fn new(config: Arc<Config>) -> Self {
+    pub fn new(config: Arc<Config>, subscriber_storage: SubscriberStorage) -> Self {
         Commands {
             config,
             commands: vec![
                 lenghel_gif::create(),
                 lenghel_rate::create(),
+                subscribe::create(),
+                unsubscribe::create(),
             ],
+            subscriber_storage,
         }
     }
 
@@ -49,6 +53,8 @@ impl Commands {
         let res: CreateInteractionResponse = match command.data.name.as_str() {
             LENGHEL_GIF => self.respond(LenghelGifInteraction(&command), &ctx).await?,
             LENGHEL_RATE => self.respond(LenghelRateInteraction(&command), &ctx).await?,
+            SUBSCRIBE => self.respond(SubscribeInteraction(&command), &ctx).await?,
+            UNSUBSCRIBE => self.respond(UnSubscribeInteraction(&command), &ctx).await?,
             _ => unimplemented_command(),
         };
 

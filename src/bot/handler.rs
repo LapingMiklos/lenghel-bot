@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::str::FromStr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -10,6 +10,7 @@ use serenity::async_trait;
 use tokio::time;
 
 use crate::config::Config;
+use crate::db::SubscriberStorage;
 use crate::model::channel::YoutubeChannel;
 use crate::utils::GetRandom;
 
@@ -22,18 +23,22 @@ pub struct Handler {
     channels: Vec<YoutubeChannel>,
     config: Arc<Config>,
     commands: Commands,
+    subscriber_storage: SubscriberStorage,
 }
 
 impl Handler {
     pub fn new(
         channels: Vec<YoutubeChannel>,
         config: Config,
+        db: shuttle_shared_db::SerdeJsonOperator,
     ) -> Handler {
         let config = Arc::new(config);
+        let subscriber_storage = SubscriberStorage::new(db.into());
         Handler {
             channels,
             config: config.clone(),
-            commands: Commands::new(config),
+            commands: Commands::new(config, subscriber_storage.clone()),
+            subscriber_storage,
         }
     }
 }
@@ -69,6 +74,7 @@ impl Handler {
     fn notification_thread(&self, ctx: &Context) {
         let ctx = ctx.clone();
         let channels = self.channels.clone();
+        let subscriber_storage = self.subscriber_storage.clone();
 
         tokio::spawn(async move {
             let mut request_interval = time::interval(Duration::from_secs(120));
@@ -78,7 +84,7 @@ impl Handler {
                 request_interval.tick().await;
 
                 for channel in channels.iter() {
-                    match send(channel, last_videos.get(channel), &ctx).await {
+                    match send(channel, last_videos.get(channel), &subscriber_storage,  &ctx).await {
                         Ok(Some(video)) => {
                             last_videos.insert(channel, video);
                         }
@@ -92,11 +98,13 @@ impl Handler {
         async fn send(
             channel: &YoutubeChannel,
             last_video: Option<&Video>,
+            subscriber_storage: &SubscriberStorage,
             ctx: &Context,
         ) -> anyhow::Result<Option<Video>> {
+            let users = subscriber_storage.all().await.unwrap_or(HashSet::new());
             if let Some(video) = channel.api.get_recent_video().await? {
                 if !last_video.is_some_and(|v| v == &video) {
-                    broadcast_message(ctx, create_video_message(&video, channel), None)
+                    broadcast_message(ctx, create_video_message(&video, channel), Some(&users))
                         .await?;
                 }
                 Ok(Some(video))

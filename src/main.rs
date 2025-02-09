@@ -3,11 +3,13 @@ pub mod bot;
 pub mod config;
 pub mod model;
 pub mod utils;
+pub mod db;
 
 use std::{fs::File, io::BufReader};
 
 use bot::handler::Handler;
 use config::Config;
+use db::SubscriberStorage;
 use dotenv::dotenv;
 use model::channel::YoutubeChannel;
 use serenity::prelude::*;
@@ -16,6 +18,7 @@ use shuttle_runtime::SecretStore;
 #[shuttle_runtime::main]
 async fn serenity(
     #[shuttle_runtime::Secrets] secrets: SecretStore,
+    #[shuttle_shared_db::Postgres] db: shuttle_shared_db::SerdeJsonOperator,
 ) -> shuttle_serenity::ShuttleSerenity {
     dotenv().ok();
 
@@ -32,6 +35,10 @@ async fn serenity(
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::MESSAGE_CONTENT;
 
+    if let Err(err) = SubscriberStorage::init(&db).await {
+        panic!("Unable to write to db {}", err);
+    }
+
     let client = Client::builder(&token, intents)
         .event_handler(Handler::new(
             vec![
@@ -39,6 +46,7 @@ async fn serenity(
                 YoutubeChannel::imi_place_sa_mananc(&yt_api_key),
             ],
             config,
+            db,
         ))
         .await
         .expect("Err creating client");
